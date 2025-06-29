@@ -19,25 +19,16 @@ library(RPostgres)
 # ============================
 # Load dan Preproses Data
 # ============================
-print("=== STARTING APP ===")
-
-print("Connecting to DB...")
 con <- dbConnect(
   RPostgres::Postgres(),
-  dbname   = Sys.getenv("DB_NAME"),
-  host     = Sys.getenv("DB_HOST"),
-  port     = as.integer(Sys.getenv("DB_PORT")),
-  user     = Sys.getenv("DB_USER"),
-  password = Sys.getenv("DB_PASSWORD")
+  dbname   = "railway",
+  host     = "yamanote.proxy.rlwy.net",
+  port     = 15672,
+  user     = "postgres",
+  password = "fwNMQdBokMQnqlgfXfNZRjZwwWHFgRsw"
 )
-print("DB CONNECTED.")
 
-print("Querying data...")
-data <- dbGetQuery(con, "SELECT * FROM hospital_management_dataset")
-print("DATA LOADED.")
-
-# Proses data
-data <- data %>%
+data <- dbGetQuery(con, "SELECT * FROM hospital_management_dataset") %>%
   mutate(
     full_name = trimws(paste(patient_first_name, patient_last_name)),
     age = 2023 - year(patient_dob),
@@ -53,7 +44,7 @@ data <- data %>%
   ) %>%
   filter(!is.na(full_name), !is.na(age))
 
-print("DATA PREPROCESSED.")
+
 dbDisconnect(con)
 
 
