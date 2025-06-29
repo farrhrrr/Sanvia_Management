@@ -1,7 +1,8 @@
-# Gunakan base image Shiny dari rocker
 FROM rocker/shiny:latest
 
-# Install dependensi sistem tambahan yang dibutuhkan beberapa package R
+# ───────────────────────────────────────────────
+# Instal dependensi OS
+# ───────────────────────────────────────────────
 RUN apt-get update && apt-get install -y \
     libssl-dev \
     libcurl4-openssl-dev \
@@ -14,23 +15,30 @@ RUN apt-get update && apt-get install -y \
     libtiff5-dev \
     libjpeg-dev \
     libpq-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-# Install package R yang diperlukan aplikasi
-RUN R -e "install.packages(c( \
-  'shiny', 'shinydashboard', 'plotly', 'dplyr', 'lubridate', \
-  'DT', 'shinyWidgets', 'DBI', 'RPostgres' \
-), repos='https://cloud.r-project.org')"
+# ───────────────────────────────────────────────
+# Instal dependensi R
+# ───────────────────────────────────────────────
+RUN R -e "install.packages(c('shiny', 'shinydashboard', 'plotly', 'dplyr', 'lubridate', 'DT', 'shinyWidgets', 'DBI', 'RPostgres'), repos='https://cloud.r-project.org')"
 
-# Salin semua file dari direktori lokal ke dalam container
-COPY . /srv/app
+# ───────────────────────────────────────────────
+# Salin file app.R langsung ke root Shiny app dir
+# ───────────────────────────────────────────────
+COPY app.R /srv/shiny-server/app.R
 
-# Ubah kepemilikan file agar bisa dijalankan oleh user shiny
-RUN chown -R shiny:shiny /srv/app
+# ───────────────────────────────────────────────
+# Set permission untuk Shiny user
+# ───────────────────────────────────────────────
+RUN chown -R shiny:shiny /srv/shiny-server
 
-# Gunakan user shiny
-USER shiny
+# ───────────────────────────────────────────────
+# Buka port Shiny Server
+# ───────────────────────────────────────────────
+EXPOSE 3838
 
-# Jalankan aplikasi
-CMD R -e "port <- Sys.getenv('PORT'); if (port == '') port <- 3838; print(paste('Running on port:', port)); shiny::runApp('/srv/app', host = '0.0.0.0', port = as.numeric(port))"
+# ───────────────────────────────────────────────
+# Jalankan Shiny Server
+# ───────────────────────────────────────────────
+CMD ["/usr/bin/shiny-server"]
