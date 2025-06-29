@@ -17,20 +17,23 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install paket R yang dibutuhkan aplikasi
+# Install paket-paket R yang dibutuhkan
 RUN R -e "install.packages(c( \
-  'shiny', 'shinydashboard', 'plotly', 'dplyr', 'lubridate', \
-  'DT', 'shinyWidgets', 'DBI', 'RPostgres' \
-), repos='https://cloud.r-project.org')"
+    'shiny', 'shinydashboard', 'plotly', 'dplyr', 'lubridate', \
+    'DT', 'shinyWidgets', 'DBI', 'RPostgres' \
+), repos = 'https://cloud.r-project.org')"
 
-# Salin semua file dari direktori lokal ke container
+# Salin seluruh isi project ke direktori kerja container
 COPY . /srv/app
 
-# Berikan izin akses ke user shiny
+# Pastikan file dimiliki oleh user shiny
 RUN chown -R shiny:shiny /srv/app
 
-# Railway akan menentukan PORT sebagai environment variable
+# Set direktori kerja
+WORKDIR /srv/app
+
+# Railway menyuntikkan PORT sebagai environment variable
 ENV PORT=${PORT:-3838}
 
-# Jalankan aplikasi dengan shiny::runApp secara langsung
-CMD R -e "shiny::runApp('/srv/app', host = '0.0.0.0', port = as.numeric(Sys.getenv('PORT')))"
+# Jalankan aplikasi Shiny
+CMD ["R", "-e", "print(Sys.getenv()); shiny::runApp('/srv/app', host = '0.0.0.0', port = as.numeric(Sys.getenv('PORT')))"]
