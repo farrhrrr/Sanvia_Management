@@ -1,7 +1,7 @@
 # Gunakan base image Shiny dari rocker
 FROM rocker/shiny:latest
 
-# Install dependensi sistem tambahan
+# Install dependensi sistem tambahan yang dibutuhkan beberapa package R
 RUN apt-get update && apt-get install -y \
     libssl-dev \
     libcurl4-openssl-dev \
@@ -17,23 +17,20 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install paket-paket R yang dibutuhkan
+# Install package R yang diperlukan aplikasi
 RUN R -e "install.packages(c( \
-    'shiny', 'shinydashboard', 'plotly', 'dplyr', 'lubridate', \
-    'DT', 'shinyWidgets', 'DBI', 'RPostgres' \
-), repos = 'https://cloud.r-project.org')"
+  'shiny', 'shinydashboard', 'plotly', 'dplyr', 'lubridate', \
+  'DT', 'shinyWidgets', 'DBI', 'RPostgres' \
+), repos='https://cloud.r-project.org')"
 
-# Salin seluruh isi project ke direktori kerja container
+# Salin semua file dari direktori lokal ke dalam container
 COPY . /srv/app
 
-# Pastikan file dimiliki oleh user shiny
+# Ubah kepemilikan file agar bisa dijalankan oleh user shiny
 RUN chown -R shiny:shiny /srv/app
 
-# Set direktori kerja
-WORKDIR /srv/app
+# Gunakan user shiny
+USER shiny
 
-# Railway menyuntikkan PORT sebagai environment variable
-ENV PORT=${PORT:-3838}
-
-# Jalankan aplikasi Shiny
-CMD ["R", "-e", "print(Sys.getenv()); shiny::runApp('/srv/app', host = '0.0.0.0', port = as.numeric(Sys.getenv('PORT')))"]
+# Jalankan aplikasi
+CMD R -e "port <- Sys.getenv('PORT'); if (port == '') port <- 3838; print(paste('Running on port:', port)); shiny::runApp('/srv/app', host = '0.0.0.0', port = as.numeric(port))"
