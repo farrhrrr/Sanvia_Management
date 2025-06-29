@@ -21,11 +21,11 @@ library(RPostgres)
 # ============================
 con <- dbConnect(
   RPostgres::Postgres(),
-  dbname   = "railway",
-  host     = "yamanote.proxy.rlwy.net",
-  port     = 15672,
-  user     = "postgres",
-  password = "fwNMQdBokMQnqlgfXfNZRjZwwWHFgRsw"
+  dbname   = Sys.getenv("DB_NAME"),
+  host     = Sys.getenv("DB_HOST"),
+  port     = as.integer(Sys.getenv("DB_PORT")),
+  user     = Sys.getenv("DB_USER"),
+  password = Sys.getenv("DB_PASSWORD")
 )
 
 data <- dbGetQuery(con, "SELECT * FROM hospital_management_dataset") %>%
