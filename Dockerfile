@@ -1,4 +1,4 @@
-FROM rocker/r-ver:4.3.2     # lebih ringan, tanpa Shiny-Server
+FROM rocker/r-ver:4.3.2    
 
 # Sistem & package R
 RUN apt-get update && apt-get install -y \
