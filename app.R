@@ -1323,4 +1323,5 @@ server <- function(input, output, session) {
 # ============================
 # Jalankan Aplikasi
 # ============================
-shinyApp(ui, server)
+port <- as.numeric(Sys.getenv("PORT", "8080"))
+shinyApp(ui, server, options = list(host = "0.0.0.0", port = port))
